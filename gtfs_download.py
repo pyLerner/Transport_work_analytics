@@ -24,7 +24,7 @@ def unzip_feed(file, catalog):
         print('UnZipped')
         return 0
 
-#
-# download_feed(URL, File)
-# unzip_feed(File, Catalog)
+
+download_feed(URL, File)
+unzip_feed(File, Catalog)
 
