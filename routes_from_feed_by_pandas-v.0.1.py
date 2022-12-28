@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-os.chdir('./feeds')
+os.chdir('/Users/Mac/Python/feed')
 routeId = pd.read_csv('operator_routes.txt')
 route = pd.read_csv('routes.txt')
 route.drop(columns=['agency_id'], axis=1, inplace=True)
