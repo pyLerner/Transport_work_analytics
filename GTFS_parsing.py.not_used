@@ -3,7 +3,7 @@ from google.transit import gtfs_realtime_pb2
 import requests
 import os
 
-os.chdir('./feed')
+os.chdir('./feeds')
 
 urlBase = 'https://portal.gpt.adc.spb.ru/Portal/transport/internalapi/gtfs/realtime/'
 vehicleRequest = 'vehicle'
