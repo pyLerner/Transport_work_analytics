@@ -130,6 +130,7 @@ def create_directory(dir: str):
     :return:
     '''
     if not os.path.exists(dir):
+        print(f'Создание каталога {dir}')
         os.mkdir(dir)
 # get_sekop_id_by_route_name('203')
 # print(type(route_id_by_route_name('228')))
