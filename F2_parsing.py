@@ -1,4 +1,5 @@
 # Получение уникальных гаражных номеров из отчета Ф2-Перевозчик
+import config
 import pandas as pd
 import os
 
@@ -8,11 +9,10 @@ def f2_parsing():
     Если файла не существует, возвращает -1
     :return: tuple(route_short_name: str, vehicle_labels[str, ...])
     '''
-    f2_file = os.path.join(os.getcwd(), 'Ф-2_(Перевозчик).xls')
+    f2_file = os.path.join(config.ASUGPT_DIR, 'Ф-2_(Перевозчик).xls')
     if not os.path.exists(f2_file):
         print('Ф-2_(Перевозчик).xls не найден')
         print('Сохраните его в каталоге со скритпом transacion_count.py или проверьте имя файла')
-        return -1
 
     f2 = pd.read_excel(f2_file)
     route_short_name = f2.iloc[6]['Unnamed: 2']
@@ -30,5 +30,3 @@ def f2_parsing():
             TC_list.append(TC)
 
     return route_short_name, TC_list
-
-# print(f2_parsing())
