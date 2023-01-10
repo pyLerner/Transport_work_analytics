@@ -44,11 +44,6 @@ def get_df_from_files(path: str):
     print('Все файлы транзакций в каталоге прочитаны')
     return total_file # Почему-то гаражные номера стали float. Приводим к int
 
-def get_df_from_sql(**query):
-    '''
-
-    :return:
-    '''
 
 def transaction_count(data_frame):
     '''
@@ -57,7 +52,7 @@ def transaction_count(data_frame):
     :return: file *.csv
     '''
     
-    data_out_path = create_catalog(config.OUT_REPORTS)              # И для выходного файла
+    data_out_path = create_catalog(config.OUT_REPORTS)              # Каталог для сохранения отчетов
 
     route = f2.f2_parsing()[0]  # Номер маршрута из Ф2
     print(f'Получен список ТС маршрута №{route} из отчета Ф2-(Перевозчик).xls')
