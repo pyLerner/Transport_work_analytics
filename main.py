@@ -13,6 +13,7 @@ start = time.time()
 gtfs.feeds_update()
 
 # Чтение отчета Ф2-(Перевозчик).xls, получение короткого названия маршрута и списка ТС
+gtfs.create_directory(config.AGUGPT_DIR)
 route_short_name = f2.f2_parsing()[0]
 
 # Получение ID СЭКОП по короткому названию маршрута
