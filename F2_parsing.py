@@ -12,7 +12,7 @@ def f2_parsing():
     f2_file = os.path.join(config.ASUGPT_DIR, 'Ф-2_(Перевозчик).xls')
     if not os.path.exists(f2_file):
         print('Ф-2_(Перевозчик).xls не найден')
-        print('Сохраните его в каталоге со скритпом transacion_count.py или проверьте имя файла')
+        print(f'Сохраните его в каталоге {config.ASUGPT_DIR} или проверьте имя файла')
 
     f2 = pd.read_excel(f2_file)
     route_short_name = f2.iloc[6]['Unnamed: 2']
