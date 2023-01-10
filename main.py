@@ -55,6 +55,8 @@ df.to_csv(file_name, sep=';')
 
 print(f'Результат запроса в базу данных для маршрута {route_short_name} сохранен в файл {file_name}')
 
+gtfs.create_directory(config.OUT_REPORTS)
+
 # Вызов функции подсчета транзакций из модуля transaction_count
 tc.transaction_count(df)
 
