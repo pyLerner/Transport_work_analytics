@@ -69,8 +69,8 @@ def feeds_update():
 
 def get_pat_routes():
     '''
-
-    :return:
+    Возвращает DataFrame с номерами маршрутов ПАТ из GTFS Feeds
+    :return: object pandas DataFrame
     '''
     route_id = pd.read_csv(os.path.join(config.GTFS_CATALOG, 'operator_routes.txt'))
     route = pd.read_csv(os.path.join(config.GTFS_CATALOG,'routes.txt'))
@@ -84,7 +84,7 @@ def get_pat_routes():
     return pat_routes
 
 
-def route_id_by_route_name(route_short_name: str):
+def get_route_id_by_route_name(route_short_name: str):
     '''
     Возвращает номер ID маршрута по короткому названию маршрута
     :param route_short_name: str
@@ -94,7 +94,7 @@ def route_id_by_route_name(route_short_name: str):
     if (not os.path.exists(config.PAT_ROUTES)) \
         or (ctime_difference(config.PAT_ROUTES) < ctime_difference(config.FILE)):
 
-        print(f'Синхронизируем справочник маршрутов {config.PAT_ROUTES} со справочниками ОРГП')
+        # print(f'Синхронизируем справочник маршрутов {config.PAT_ROUTES} со справочниками ОРГП')
         route = get_pat_routes()
     else:
         print(f'Чтение файла маршрутов {config.PAT_ROUTES}...')
@@ -123,6 +123,29 @@ def get_sekop_id_by_route_name(route_short_name: str):
     sekop_id = sekop_id['route_sekop_id']
     sekop_id = int(sekop_id)
     return sekop_id
+
+def get_route_shortname_by_routeid(route_id: int):
+    '''
+    Возвращает номер маршрута по route id
+    :param route_id:
+    :return: route_short_name: str
+    '''
+    if (not os.path.exists(config.PAT_ROUTES)) \
+        or (ctime_difference(config.PAT_ROUTES) < ctime_difference(config.FILE)):
+
+        # print(f'Синхронизируем справочник маршрутов {config.PAT_ROUTES} со справочниками ОРГП')
+        route = get_pat_routes()
+    else:
+        print(f'Чтение файла маршрутов {config.PAT_ROUTES}...')
+        route = pd.read_csv(config.PAT_ROUTES)
+        print('Ok')
+
+    route = route[route.route_id == route_id]
+    idx = route.index                               #Строим индекс строк(и)
+
+    route_shortname = int(route.at[idx[0], 'route_short_name'])     #
+    return route_shortname
+
 
 def create_directory(dir: str):
     '''
