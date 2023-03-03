@@ -4,6 +4,7 @@ import config
 import datetime as dt
 import gtfs_download as gtfs
 import F2_parsing as f2
+import pandas as pd
 import transaction_count as tc
 import sql_get_data as sql
 
@@ -30,31 +31,32 @@ now = dt.datetime.now().date()
 start_date = now.strftime('%Y-%m-01')
 end_date = now.strftime('%Y-%m-%d')
 
-# Тут должна быть функция получения номера таблицы с транзакциями по номеру маршрута (нужно создать такую таблицу)
-# Пока временная заглушка
-if sekop_id == 18067:
-    park = '7'
-elif sekop_id == 15333:
-    park = '3'
+# Получение номера парка для определения номера таблицы базы    
+parks = f2.get_park_number()
+df = pd.DataFrame()
 
-query = f"SELECT `CARRIER_BOARD_NUM`, `TRANSACT_DATE_TIME` " \
-        f"FROM `park_{park}` WHERE date (`TRANSACT_DATE_TIME`) "\
-        f"BETWEEN '{start_date}' AND '{end_date}' AND `ID_ROUTE`='{sekop_id}'"
+for park in parks:
 
-print(f'Выполняется запрос в базу Парка № {park}... '
-      f'Это займет некоторое время. Подождите.')
+    query = f"SELECT `CARRIER_BOARD_NUM`, `TRANSACT_DATE_TIME` " \
+            f"FROM `park_{park}` WHERE date (`TRANSACT_DATE_TIME`) "\
+            f"BETWEEN '{start_date}' AND '{end_date}' AND `ID_ROUTE`='{sekop_id}'"
 
-df = sql.get_df_from_sql(query)
+    print(f'Выполняется запрос в базу Парка № {park}... '
+          f'Это займет некоторое время. Подождите.')
 
-print('Ответ от базы данных получен')
+    df_park = sql.get_df_from_sql(query)
 
-# Сохранение ответа базы данных для маршрута в текущем месяце
-file_name = f'park_{park}.csv'
-file_name = path.join(config.TRANSACTIONS_CATALOG, file_name)
-df.to_csv(file_name, sep=';')
+    print('Ответ от базы данных получен')
 
-print(f'Результат запроса в базу данных для маршрута {route_short_name} сохранен в файл {file_name}')
+    # Сохранение ответа базы данных для маршрута в текущем месяце
+    file_name = f'park_{park}.csv'
+    file_name = path.join(config.TRANSACTIONS_CATALOG, file_name)
+    df_park.to_csv(file_name, sep=';')
 
+    print(f'Результат запроса в базу данных для маршрута {route_short_name} сохранен в файл {file_name}')
+
+    df = pd.concat([df, df_park], axis=0)
+    
 gtfs.create_directory(config.OUT_REPORTS)
 
 # Вызов функции подсчета транзакций из модуля transaction_count

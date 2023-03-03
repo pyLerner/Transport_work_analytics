@@ -30,3 +30,14 @@ def f2_parsing():
             TC_list.append(TC)
 
     return route_short_name, TC_list
+
+def get_park_number():
+
+    vehicles = f2_parsing()[1]
+    parks = set([vehicles[i][:1] for i in range(len(vehicles))])
+    return list(parks)
+
+if  __name__ == "__main__":
+    pass
+
+print(get_park_number())
