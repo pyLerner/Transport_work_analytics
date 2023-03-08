@@ -1,126 +1,228 @@
-#  Программа читает файл со строками в формате NMEA 0183 и строит трек на карте
+"""
+Программа парсит  из log БО СЭКОП данные в формате NMEA 0183.
+Переводит данные в формат для отображения на карте и строит интерактивную карту в HTML
+Входные данные - запакованный лог БО СЭКОП.
+Результат выполнения - страница HTML с треком
+"""
 
 import numpy as np
-import re
+import pandas as pd
 import folium
 import datetime
 
+
+def extract_nmea_from_log(log):
+    """
+    Принимает log.csv.tar.gz без предварительной распаковки.
+    Возвращает numpy массив с данными NMEA. Тип данных float.
+    Матрица состоит из 5 столбцов: время, широта, долгота, скорость, путевой угол в формате NMEA 0183
+    :param log:
+    :return: numpy.array.dtype(float)
+    """
+
+    geo = pd.read_csv(log, sep=';', header=None, on_bad_lines='skip')
+    geo = geo[geo[4] == ' geo '][[0, 1, 5]]  # Оставили только строки с NMEA, столбцы с датой, временем, NMEA
+
+    """
+    На всякий случай оставлены столбцы 0 - дата, 1 - время записи строки в логе. Может пригодиться для анализа 
+    точного время
+    """
+
+    geo_list = geo[5].str.findall(r'\d+\.\d+').to_list()  # Список  чисел с плавающей точкой из строки в столбце 5
+    return np.array(geo_list).astype(float)
+
+
 def nmea_coordinates_to_degrees(nmea_array):
-    '''
+    """
     Перевод строковых значений NMEA в градусы
     :param nmea_array:
     :return: ndarray.astype(float)
-    '''
-    nmea_array = np.array(nmea_array).astype(float)
-    int_degrees = (nmea_array / 100) // 1       # Целая часть
-    nmea_minutes = (nmea_array / 100) % 1       # Мантисса
+    """
+
+    int_degrees = nmea_array // 100      # Целая часть
+    nmea_minutes = (nmea_array / 100) % int_degrees      # Мантисса
     float_degrees = nmea_minutes * 5 / 3        # Перевод из минут в десятичную дробь *100/60
 
     out = int_degrees + float_degrees
+    return out
+
+
+def track_time_to_datetime(nmea_time):
+    """
+    Перевод времени NMEA в datetime
+    :param nmea_time: numpy array [n, 1]
+    :return: datetimes list
+    """
+
+    hours = nmea_time // 10000                              # Часы в UTC
+    minutes = nmea_time // 100 % 100                        # Минуты
+    seconds = nmea_time % (hours * 10000 + minutes * 100)   # Секунды
+    hours = (hours + 3) % 24                                # GMT+3 !!!
+
+    out = [datetime.time(int(hours[i]),
+                         int(minutes[i]),
+                         int(seconds[i]))
+           for i in range(hours.shape[0])
+           ]
+
     # print(out)
     return out
 
 
-def nmea_time_to_readable(nmea_time):
-    '''
-    Перевод времени NMEA в читаемый вид
-    :param nmea_time: list or array
-    :return:
-    '''
-    nmea_time = np.array(nmea_time).astype(float)
-    print(nmea_time)
-    hours = nmea_time // 10000                              # Часы
-    minutes = nmea_time // 100 % 100                        # Минуты
-    seconds = nmea_time % (hours * 10000 + minutes * 100)   # Секунды
-    hours += 3                                             #  + 3 GMT
-    out = datetime.time(int(hours), int(minutes), int(seconds))
-    print(out)
-    return out
+def draw_dot_track_to_map(my_map,
+                          track_time,
+                          track2list,
+                          radius=3,
+                          fill=True,
+                          fill_color='red',
+                          color='red',
+                          tail_label_color='blue'):
+    """
+    Отрисовка трека на карте точками.
+    :param my_map: folium Map
+    :param track_time: Список дат в строковом формате. Список дат в формате datetime также возможен
+    :param track2list: Список кортежей или список списков с координатами
+    :param radius: радиус круга
+    :param fill: закрашивать круг или нет
+    :param fill_color: каким цветом закрашивать
+    :param color: цвет круга
+    :param tail_label_color: цвет метки в начальной и конечной точках
+    len(trac2list) == len(track_time)
+    :return: None
+
+    ## Примеры
+    # Рисование иконок геопозиции
+    for coordinates in track:
+        folium.Marker(location=coordinates, icon=folium.Icon(color='green')).add_to(my_map)
 
 
-with open('SEKOP_LOGS/log_geo.csv', 'r') as file:
-    s = file.read().splitlines()
-    # print(s)
+    # Метки для НП/КП (Начало и конец трека)
+    for coordination, times in zip([track2list[0], track2list[-1]],
+                                   [track_time[0], track_time[-1]]):
 
-    nmea_time, nmea_track = [], []
-    for row in s:
-        # Парсим из строки лога с координатами текстовые значение координат в формате NMEA.
-        nmea_string = re.findall(r'\d+\.\d+', row)
-        if nmea_string:             # Пустые строки не берем
-            # print(nmea_string)
-
-            # Рабочий, но медленный способ
-            nmea_date_time = datetime.time(int(nmea_string[0][:2]) + 3,  # GMT 3
-                                          int(nmea_string[0][2:4]),
-                                          int(nmea_string[0][4:6]))
+        folium.Marker(location=coordination,
+                      icon=folium.Icon(color='blue'),
+                      tooltip=folium.Tooltip(times,       # Любит строку, но с datetime тоже работает
+                                             sticky=False,
+                                             permanent=True
+                                             )
+                      ).add_to(my_map)
 
 
-            nmea_time.append(nmea_date_time)  # Список значений времени datetime
-
-            nmea_string = nmea_string[1:]
-            nmea_track.append(nmea_string)      #Числовые данные: координаты, скорость, путевой угол
-
-    # print(nmea_track)
-    # print(nmea_time)
-
-
-track = nmea_coordinates_to_degrees(nmea_track)[:, 0:2]     # Перевод из строкового NMEA в десятичный np.array
-# print(nmea_coordinates_to_degrees(nmea_track))
+    # Трасса маршрута в полилиниях
+    folium.PolyLine(track, tooltip=folium.Tooltip("text",
+                                               sticky=False,    # не прилипает к курсору
+                                               permanent=True,  # отображается всегда
+                                        #      style='background-color:grey'
+                                                  )
+                    ).add_to(my_map)
 
 
-# Привели к виду для загрузки в leaflet/foliant:
-track2list = track.tolist()
+    # Рисуем трек красными кружками:
+    for times, coordinate in zip(track_time, track2list):
+
+        folium.CircleMarker(location=coordinate,
+                            color='red',
+                            radius=3,
+                            tooltip=times,      # Программа ожидает строку, но с datetime работает
+                            fill=True,
+                            fill_color='red'
+                            ).add_to(my_map)
 
 
-# Инициализация карты в начальной точке трассы (АС)
-map = folium.Map(location=track2list[0], zoom_start=12)
-
-
-# Рисование иконок геопозиции
-# for coordinates in track:
-#     folium.Marker(location=coordinates, icon=folium.Icon(color='green')).add_to(map)
-
-
-# Метки для НП/КП (Начало и конец трека)
-for coordination in [track2list[0], track2list[-1]]:
-
-    folium.Marker(location=coordination,
-                    icon=folium.Icon(color='blue')
-                  ).add_to(map)
-
-
-# Трасса маршрута в полилиниях
-# folium.PolyLine(track, tooltip=folium.Tooltip("3-й Парк",
-#                                            sticky=False,    # не прилипает к курсору
-#                                            permanent=True,  # отображается всегда
-#                                     #      style='background-color:grey'
-#                                               )
-#                 ).add_to(map)
-
-
-
-# Рисуем трек красными кружками:
-
-for times, coordinate in zip(nmea_time, track2list):
-
-    folium.CircleMarker(location=coordinate,
+    # Одиночная координата:
+    # location = tuple or list
+    folium.CircleMarker(location=location,
                         color='red',
-                        radius=3,
-                        tooltip=times,
+                        radius=4,
+                        tooltip=location,
                         fill=True,
-                        fill_color='red').add_to(map)
+                        fill_color='red').add_to(my_map)
+
+    """
+
+    # Метки для НП/КП (Начало и конец трека)
+    for coordination, times in zip([track2list[0], track2list[-1]],
+                                   [track_time[0], track_time[-1]]):
+        folium.Marker(location=coordination,
+                      icon=folium.Icon(color=tail_label_color),
+                      tooltip=folium.Tooltip(times,  # В иделе сюда подавать строку, но datetime тоже работает
+                                             sticky=False,
+                                             permanent=True
+                                             )
+                      ).add_to(my_map)
+
+    # Трек точками
+    for times, coordinate in zip(track_time, track2list):
+        folium.CircleMarker(location=coordinate,
+                            color=color,
+                            radius=radius,
+                            tooltip=times,  # Программа ожидает строку, но с datetime работает
+                            fill=fill,
+                            fill_color=fill_color
+                            ).add_to(my_map)
 
 
-# Одиночная координата
-# location = track[15]
-# folium.CircleMarker(location=location,
-#                     color='red',
-#                     radius=4,
-#                     tooltip=location,
-#                     fill=True,
-#                     fill_color='red').add_to(map)
+def draw_polyline_trip_track(my_map,
+                             track,
+                             color='blue',
+                             tooltip_text=None):
+
+    """
+    :param my_map:  folium Map
+    :param track: список кортежей или списков с координатами
+    :param color: цвет полилиний трека
+    :param tooltip_text: текст в текстовой метке
+
+    :return: None
+    """
+
+    # Метки для НП/КП
+    for coordination in [track[0], track[-1]]:
+        folium.Marker(location=coordination,
+                      icon=folium.Icon(color=color)
+                      ).add_to(my_map)
+
+    # Трасса маршрута
+    folium.PolyLine(track, tooltip=folium.Tooltip(tooltip_text,
+                                                  sticky=False,  # не прилипает к курсору
+                                                  permanent=True  # отображается всегда
+                                                  #          style='background-color:grey'
+                                                  )
+                    ).add_to(my_map)
 
 
-map.save("map2.html")
+if __name__ == "__main__":
+    pass
 
-check = nmea_time_to_readable('001234.123')
+    # Пример работы на реальных файлах:
+
+    log_file = 'SEKOP_LOGS/20230218015411-logs.csv.tar.gz'
+    # log_file = 'SEKOP_LOGS/204_20230218.csv'
+    # log_file = 'SEKOP_LOGS/019_20220408.csv'
+    # log_file = 'SEKOP_LOGS/020_20220408.csv'
+
+    # Получение массива данных  NMEA из лога
+    nmea_track = extract_nmea_from_log(log_file)
+
+    # Преобразование  времени в datetime
+    track_time = track_time_to_datetime(nmea_track[:, 0])
+
+    # Пересчитываем координаты в десятичные градусы
+    track = nmea_coordinates_to_degrees(nmea_track)[:, 1:3]
+
+    # Приведение к виду для загрузки в leaflet/foliant:
+    track2list = track.tolist()
+
+    # Инициализация карты в начальной точке трека
+    my_map = folium.Map(location=track2list[0], zoom_start=12)
+
+    # Отрисовка трека точками
+    draw_dot_track_to_map(my_map, track_time, track2list)
+
+    # Трек линиями
+    draw_polyline_trip_track(my_map, track2list)
+
+    # Генерируем HTML страницу
+    file = 'map.html'
+    file = my_map.save(file)
