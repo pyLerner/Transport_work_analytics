@@ -1,4 +1,6 @@
 import os
+import dotenv
+
 ### GTFS section ######
 FILE: str = 'feed.zip'
 GTFS_URL: str = 'http://portal.gpt.adc.spb.ru/Portal/transport/internalapi/gtfs/'
