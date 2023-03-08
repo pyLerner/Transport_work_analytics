@@ -21,21 +21,21 @@ def nmea_coordinates_to_degrees(nmea_array):
     return out
 
 
-# def nmea_time_to_readable(nmea_time):
-#     '''
-#     Перевод времени NMEA в читаемый вид
-#     :param nmea_time: list or array
-#     :return:
-#     '''
-#     nmea_time = np.array(nmea_time).astype(float)
-#     print(nmea_time)
-#     hours = nmea_time * 1e-4 // 1 + 3                   # Часы + 3 GMT
-#     minutes = nmea_time * 1e-2 % (hours * 100) // 1          # Мантисса
-#     seconds = nmea_time % ((hours * 100 + minutes) * 10)      # Секунды
-#
-#     out = str(hours) + str(minutes) + str(seconds // 1)
-#     print(out)
-#     return out
+def nmea_time_to_readable(nmea_time):
+    '''
+    Перевод времени NMEA в читаемый вид
+    :param nmea_time: list or array
+    :return:
+    '''
+    nmea_time = np.array(nmea_time).astype(float)
+    print(nmea_time)
+    hours = nmea_time // 10000                              # Часы
+    minutes = nmea_time // 100 % 100                        # Минуты
+    seconds = nmea_time % (hours * 10000 + minutes * 100)   # Секунды
+    hours += 3                                             #  + 3 GMT
+    out = datetime.time(int(hours), int(minutes), int(seconds))
+    print(out)
+    return out
 
 
 with open('SEKOP_LOGS/log_geo.csv', 'r') as file:
@@ -48,9 +48,12 @@ with open('SEKOP_LOGS/log_geo.csv', 'r') as file:
         nmea_string = re.findall(r'\d+\.\d+', row)
         if nmea_string:             # Пустые строки не берем
             # print(nmea_string)
+
+            # Рабочий, но медленный способ
             nmea_date_time = datetime.time(int(nmea_string[0][:2]) + 3,  # GMT 3
                                           int(nmea_string[0][2:4]),
                                           int(nmea_string[0][4:6]))
+
 
             nmea_time.append(nmea_date_time)  # Список значений времени datetime
 
@@ -119,3 +122,5 @@ for times, coordinate in zip(nmea_time, track2list):
 
 
 map.save("map2.html")
+
+check = nmea_time_to_readable('001234.123')
