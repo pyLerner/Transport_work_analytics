@@ -8,17 +8,25 @@ import pandas as pd
 import transaction_count as tc
 import sql_get_data as sql
 
+
 start = time.time()
 
 # Обновление фидов
-gtfs.feeds_update()
+# gtfs.feeds_update()
 
 # Чтение отчета Ф2-(Перевозчик).xls, получение короткого названия маршрута и списка ТС
 gtfs.create_directory(config.ASUGPT_DIR)
 route_short_name = f2.f2_parsing()[0]
 
 # Получение ID СЭКОП по короткому названию маршрута
-sekop_id = gtfs.get_sekop_id_by_route_name(route_short_name)
+
+query = f"SELECT `route_sekop_id` " \
+        f"FROM `pat_routes` " \
+        f"WHERE `route_short_name` = '{route_short_name}'"
+
+sekop_id = sql.get_sekop_id_by_route_id(query)
+
+# sekop_id = gtfs.get_sekop_id_by_route_name(route_short_name)
 print(f'Получен ID СЭКОП {sekop_id} для маршрута №{route_short_name}')
 
 # Вызвать функцию создания директории для файлов транзакций

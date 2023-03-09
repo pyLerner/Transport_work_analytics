@@ -1,7 +1,9 @@
 import os
-import dotenv
+from dotenv import load_dotenv
 
-### GTFS section ######
+load_dotenv()
+
+# GTFS section ######
 FILE: str = 'feed.zip'
 GTFS_URL: str = 'http://portal.gpt.adc.spb.ru/Portal/transport/internalapi/gtfs/'
 GTFS_CATALOG: str = os.path.join(os.getcwd(), 'Feeds')
@@ -18,15 +20,15 @@ ASUGPT_DIR: str = os.path.join(os.getcwd(), 'ASUGPT_reports')
 # Справочник ID_ROUTE, ID_SEKOP
 PAT_IDS: str = os.path.join(GTFS_CATALOG, 'pat_ids.csv')
 
-### SQL section ######
+# SQL section ######
 TRANSACTIONS_CATALOG: str = os.path.join(os.getcwd(), 'Transactions')
-DIALECT: str = 'mysql'
-DRIVER: str = 'pymysql'
-SQL_USER: str = 'obo'
-SQL_PASSWD: str = 'hN8L36Cl'
-SQL_HOST: str = '192.168.45.75'
-DB_NAME: str = 'obo'
+DIALECT = os.getenv('DIALECT')
+DRIVER = os.getenv('DRIVER')
+SQL_USER = os.getenv('SQL_USER')
+SQL_PASSWD = os.getenv('SQL_PASSWD')
+SQL_HOST = os.getenv('SQL_HOST')
+SEKOP_DB_NAME = os.getenv('SEKOP_DB_NAME')
+FEEDS_DB_NAME = os.getenv('FEEDS_DB_NAME')
 
-
-### Out Result section
+# Out Result section
 OUT_REPORTS: str = os.path.join(os.getcwd(), 'OutReports')

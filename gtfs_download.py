@@ -107,7 +107,7 @@ def get_route_id_by_route_name(route_short_name: str):
     route_id = int(route.at[idx[0], 'route_id'])     #
     return route_id
 
-def get_sekop_id_by_route_name(route_short_name: str):
+def get_sekop_id_from_csv_by_route_name(route_short_name: str):
     '''
     Возвращает целое число - идентификатор СЭКОП по номеру (названию) маршрута
     :param route_name: str
@@ -123,6 +123,24 @@ def get_sekop_id_by_route_name(route_short_name: str):
     sekop_id = sekop_id['route_sekop_id']
     sekop_id = int(sekop_id)
     return sekop_id
+
+def get_sekop_id_from_by_route_name(route_short_name: str):
+    '''
+    Возвращает целое число - идентификатор СЭКОП по номеру (названию) маршрута
+    :param route_name: str
+    :return: sekop_id: int
+    '''
+    pat_ids_file = config.PAT_IDS
+    if not os.path.exists(pat_ids_file):
+        print('Справочник идентификаторов маршрута и СЭКОП не найден')
+        print('Ошибка')
+        return -1
+    pat_ids = pd.read_csv(pat_ids_file, sep=';')
+    sekop_id = pat_ids[pat_ids.route_short_name == route_short_name]
+    sekop_id = sekop_id['route_sekop_id']
+    sekop_id = int(sekop_id)
+    return sekop_id
+
 
 def get_route_shortname_by_routeid(route_id: int):
     '''
