@@ -197,7 +197,8 @@ if __name__ == "__main__":
 
     # Пример работы на реальных файлах:
 
-    log_file = 'SEKOP_LOGS/20230218015411-logs.csv.tar.gz'
+    # log_file = 'SEKOP_LOGS/20230218015411-logs.csv.tar.gz'
+    log_file = 'SEKOP_LOGS/019_20220408.csv'
     # log_file = 'SEKOP_LOGS/204_20230218.csv'
     # log_file = 'SEKOP_LOGS/019_20220408.csv'
     # log_file = 'SEKOP_LOGS/020_20220408.csv'
