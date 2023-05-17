@@ -58,7 +58,12 @@ for park in parks:
 
     # Сохранение ответа базы данных для маршрута в текущем месяце
     file_name = f'park_{park}.csv'
-    file_name = path.join(config.TRANSACTIONS_CATALOG, file_name)
+
+    file_name = path.join(
+        config.TRANSACTIONS_CATALOG,
+        file_name
+    )
+
     df_park.to_csv(file_name, sep=';')
 
     print(f'Результат запроса в базу данных для маршрута {route_short_name} сохранен в файл {file_name}')
@@ -74,7 +79,7 @@ end = round(time.time() - start, 2)
 
 if end > 60:
     minutes = int(end // 60)
-    seconds = end % 60
+    seconds = round(end % 60, 2)
     print(f'\nВремя выполнения {minutes} мин. {seconds} сек.')
 else:
     print(f'\nВремя выполнения {end} сек.')
