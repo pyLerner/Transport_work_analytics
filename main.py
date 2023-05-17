@@ -20,11 +20,11 @@ route_short_name = f2.f2_parsing()[0]
 
 # Получение ID СЭКОП по короткому названию маршрута
 
-query = f"SELECT `route_sekop_id` " \
-        f"FROM `pat_routes` " \
-        f"WHERE `route_short_name` = '{route_short_name}'"
+# query = f"SELECT `route_sekop_id` " \
+#         f"FROM `pat_routes` " \
+#         f"WHERE `route_short_name` = '{route_short_name}'"
 
-sekop_id = sql.get_sekop_id_by_route_id(query)
+sekop_id = sql.get_sekop_id_by_route_name(route_short_name)
 
 # sekop_id = gtfs.get_sekop_id_by_route_name(route_short_name)
 print(f'Получен ID СЭКОП {sekop_id} для маршрута №{route_short_name}')

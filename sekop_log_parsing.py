@@ -198,10 +198,10 @@ if __name__ == "__main__":
     # Пример работы на реальных файлах:
 
     # log_file = 'SEKOP_LOGS/20230218015411-logs.csv.tar.gz'
-    log_file = 'SEKOP_LOGS/019_20220408.csv'
-    # log_file = 'SEKOP_LOGS/204_20230218.csv'
     # log_file = 'SEKOP_LOGS/019_20220408.csv'
-    # log_file = 'SEKOP_LOGS/020_20220408.csv'
+    # log_file = 'SEKO P_LOGS/204_20230218.csv'
+    # log_file = 'SEKOP_LOGS/019_20220408.csv'
+    log_file = 'SEKOP_LOGS/020_20220408.csv'
 
     # Получение массива данных  NMEA из лога
     nmea_track = extract_nmea_from_log(log_file)
@@ -215,14 +215,49 @@ if __name__ == "__main__":
     # Приведение к виду для загрузки в leaflet/foliant:
     track2list = track.tolist()
 
-    # Инициализация карты в начальной точке трека
-    my_map = folium.Map(location=track2list[0], zoom_start=12)
+    # Инициализация карты с центром в начальной точке трека
+    # my_map = folium.Map(
+    #     location=track2list[0],
+    #     zoom_start=12
+    # )
+
+    # Среднее арифметическая координата всех точек трека
+    # mean_track_dot = track.mean(axis=0).tolist()
+    # Центрирование карты в точке среднеарифметического значений трека
+    # my_map = folium.Map(
+    #     location=mean_track_dot,
+    #     zoom_start=12
+    # )
+
+    # Параметры баундингбокса
+    bottom_right = [
+        track.max(axis=0)[0],
+        track.min(axis=0)[1]
+    ]
+
+    top_left = [
+        track.min(axis=0)[0],
+        track.max(axis=0)[1]
+    ]
+
+    # Центр баундингбокса
+    center_dot = (np.array(bottom_right) + np.array(top_left)) / 2
+    center_dot = center_dot.tolist()
+
+    # Центрирование карты в центре баундингбокса
+    my_map = folium.Map(location=center_dot)
 
     # Отрисовка трека точками
     draw_dot_track_to_map(my_map, track_time, track2list)
 
     # Трек линиями
     draw_polyline_trip_track(my_map, track2list)
+
+    # Автомасштаб по границам баундингбокса
+    my_map.fit_bounds(
+        [bottom_right, top_left],
+        padding=(10, 10)            # Отступы по краям
+    )
 
     # Генерируем HTML страницу
     file = 'map.html'
