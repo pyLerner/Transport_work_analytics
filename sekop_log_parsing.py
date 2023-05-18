@@ -40,7 +40,10 @@ def nmea_coordinates_to_degrees(nmea_array):
     """
 
     int_degrees = nmea_array // 100      # Целая часть
+
+    np.seterr(invalid='ignore')         # Обход деления на ноль
     nmea_minutes = (nmea_array / 100) % int_degrees      # Мантисса
+
     float_degrees = nmea_minutes * 5 / 3        # Перевод из минут в десятичную дробь *100/60
 
     out = int_degrees + float_degrees
