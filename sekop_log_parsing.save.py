@@ -10,19 +10,16 @@ import pandas as pd
 import folium
 import datetime
 
+def extract_time_periog(start_datetime, stop_datetime):
+    return None
 
-def extract_nmea_from_log(
-        log,
-        start_time: str = None,
-        end_time: str = None
-):
 
+def extract_nmea_from_log(log, start_time=None, end_time=None):
     """
     Принимает log.csv.tar.gz без предварительной распаковки.
     Возвращает numpy массив с данными NMEA. Тип данных float.
     Матрица состоит из 5 столбцов: время, широта, долгота, скорость, путевой угол в формате NMEA 0183
-    :param log: лог файл СЭКОП
-    :param start_time, stop_time: границы временного интервала в ФОРМАТЕ YYYY-mm-dd HH:MM
+    :param log:
     :return: numpy.array.dtype(float)
     """
 
@@ -30,34 +27,34 @@ def extract_nmea_from_log(
     geo = geo[geo[4] == ' geo '][[0, 1, 5]]  # Оставили только строки с NMEA, столбцы с датой, временем, NMEA
 
     """
-    Оставлены столбцы 0 - дата, 1 - время записи строки в логе. Может пригодиться для анализа 
+    На всякий случай оставлены столбцы 0 - дата, 1 - время записи строки в логе. Может пригодиться для анализа 
     точного время
     """
 
-    # Зачищаем ячейки столбца Дата от всех символов, кроме 0-9, '-'
+    # Зачищаем ячейки от всех символов, кроме 0-9, '-'
     geo[0].replace(r'[^\d-]', '', regex=True, inplace=True)
 
+    # # Переводим в datetime  YYYY-mm-dd
+    # geo[0] = pd.to_datetime(geo[0], format='%Y-%m-%d')
 
-    # Зачищаем ячейки столбца Время от всех символов, кроме 0-9, ':'
+    # Зачищаем ячейки от всех символов, кроме 0-9, ':'
     geo[1].replace(r'[^\d:]', '', regex=True, inplace=True)
 
-    # Объединяем  столбцы 0 и 1 и в datetime YYYY-mm-dd HH:MM:SS
+    # Переводим столбцы 0 и 1 и в datetime YYYY-mm-dd HH:MM:SS
     geo[0] = pd.to_datetime(geo[0] + " " + geo[1])
 
-    # Если граница не указана, то она принимает крайнее значение:
+    # Если граница то принимает крайнее значение:
     if not start_time:
         start_time = geo[0].iloc[0]
     if not end_time:
         end_time = geo[0].iloc[-1]
-    else:
-        end_time += ":59"     # В период включается вся минута до последней секунды
 
-    # Отбор строк за период
-    geo = geo[(geo[0] >= start_time) & (geo[0] < end_time)]
 
-    # Список чисел с плавающей точкой из строки в столбце 5
-    geo_list = geo[5].str.findall(r'\d+\.\d+').to_list()
+    # Отбор периода
+    geo = geo[(geo[0] >= start_time) & (geo[0] <= end_time)]
 
+
+    geo_list = geo[5].str.findall(r'\d+\.\d+').to_list()  # Список  чисел с плавающей точкой из строки в столбце 5
     return np.array(geo_list).astype(float)
 
 
@@ -101,16 +98,14 @@ def track_time_to_datetime(nmea_time):
     return out
 
 
-def draw_dot_track_to_map(
-        my_map,
-        track_time,
-        track2list,
-        radius=3,
-        fill=True,
-        fill_color='red',
-        color='red',
-        tail_label_color='blue'
-):
+def draw_dot_track_to_map(my_map,
+                          track_time,
+                          track2list,
+                          radius=3,
+                          fill=True,
+                          fill_color='red',
+                          color='red',
+                          tail_label_color='blue'):
     """
     Отрисовка трека на карте точками.
     :param my_map: folium Map
@@ -180,7 +175,7 @@ def draw_dot_track_to_map(
                                    [track_time[0], track_time[-1]]):
         folium.Marker(location=coordination,
                       icon=folium.Icon(color=tail_label_color),
-                      tooltip=folium.Tooltip(times,  # В идеале сюда подавать строку, но datetime тоже работает
+                      tooltip=folium.Tooltip(times,  # В иделе сюда подавать строку, но datetime тоже работает
                                              sticky=False,
                                              permanent=True
                                              )
@@ -188,14 +183,13 @@ def draw_dot_track_to_map(
 
     # Трек точками
     for times, coordinate in zip(track_time, track2list):
-        folium.CircleMarker(
-            location=coordinate,
-            color=color,
-            radius=radius,
-            tooltip=times,  # Программа ожидает строку, но с datetime работает
-            fill=fill,
-            fill_color=fill_color
-        ).add_to(my_map)
+        folium.CircleMarker(location=coordinate,
+                            color=color,
+                            radius=radius,
+                            tooltip=times,  # Программа ожидает строку, но с datetime работает
+                            fill=fill,
+                            fill_color=fill_color
+                            ).add_to(my_map)
 
 
 def draw_polyline_trip_track(my_map,
@@ -214,21 +208,17 @@ def draw_polyline_trip_track(my_map,
 
     # Метки для НП/КП
     for coordination in [track[0], track[-1]]:
-        folium.Marker(
-            location=coordination,
-            icon=folium.Icon(color=color)
-        ).add_to(my_map)
+        folium.Marker(location=coordination,
+                      icon=folium.Icon(color=color)
+                      ).add_to(my_map)
 
     # Трасса маршрута
-    folium.PolyLine(
-        track,
-        tooltip=folium.Tooltip(
-            tooltip_text,
-            sticky=False,  # не прилипает к курсору
-            permanent=True  # отображается всегда
-            #          style='background-color:grey'
-        )
-    ).add_to(my_map)
+    folium.PolyLine(track, tooltip=folium.Tooltip(tooltip_text,
+                                                  sticky=False,  # не прилипает к курсору
+                                                  permanent=True  # отображается всегда
+                                                  #          style='background-color:grey'
+                                                  )
+                    ).add_to(my_map)
 
 
 if __name__ == "__main__":
@@ -243,15 +233,15 @@ if __name__ == "__main__":
     log_file = 'SEKOP_LOGS/020_20220408.csv'
 
     # Получение массива данных  NMEA из лога ЗА ПЕРИОД ВРЕМЕНИ
-    start = '2022-04-08 14:30'
-    stop = '2022-04-08 14:52'
-    # start = ''
+    # start = '2022-04-08 14:30'
+    stop = '2022-04-08 14:41'
+    start = ''
     # stop = ''
 
     nmea_track = extract_nmea_from_log(log_file, start, stop)
 
-    # print(start)
-    # print(stop)
+    print(start)
+    print(stop)
 
     # Преобразование  времени в datetime
     track_time = track_time_to_datetime(nmea_track[:, 0])
