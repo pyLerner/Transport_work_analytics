@@ -173,5 +173,12 @@ def create_directory(dir: str):
     if not os.path.exists(dir):
         print(f'Создание каталога {dir}')
         os.mkdir(dir)
-# get_sekop_id_by_route_name('203')
-# print(type(route_id_by_route_name('228')))
+
+if __name__ == "__main__":
+    pass
+
+    route_id = get_route_id_by_route_name('127')
+    print(route_id)
+
+    # get_sekop_id_by_route_name('203')
+    # print(type(route_id_by_route_name('228')))
