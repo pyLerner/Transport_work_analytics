@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import folium
 import datetime
+from io import BytesIO
 
 
 def extract_nmea_from_log(
@@ -26,6 +27,7 @@ def extract_nmea_from_log(
     :return: numpy.array.dtype(float)
     """
 
+    # log = BytesIO(log)
     geo = pd.read_csv(log, sep=';', header=None, on_bad_lines='skip')
     geo = geo[geo[4] == ' geo '][[0, 1, 5]]  # Оставили только строки с NMEA, столбцы с датой, временем, NMEA
 
@@ -230,22 +232,29 @@ def draw_polyline_trip_track(my_map,
     ).add_to(my_map)
 
 
-if __name__ == "__main__":
-    pass
+# if __name__ == "__main__":
+#     pass
 
+def log2html(
+        log_file,
+        start: str = None,
+        stop: str = None
+):
     # Пример работы на реальных файлах:
 
     # log_file = 'SEKOP_LOGS/20230218015411-logs.csv.tar.gz'
     # log_file = 'SEKOP_LOGS/019_20220408.csv'
     # log_file = 'SEKO P_LOGS/204_20230218.csv'
     # log_file = 'SEKOP_LOGS/019_20220408.csv'
-    log_file = 'SEKOP_LOGS/020_20220408.csv'
+    # log_file = 'SEKOP_LOGS/020_20220408.csv'
 
     # Получение массива данных  NMEA из лога ЗА ПЕРИОД ВРЕМЕНИ
-    start = '2022-04-08 14:30'
-    stop = '2022-04-08 14:52'
+    # start = '2022-04-08 14:30'
+    # stop = '2022-04-08 14:52'
     # start = ''
     # stop = ''
+
+    log_file = BytesIO(log_file)
 
     nmea_track = extract_nmea_from_log(log_file, start, stop)
 
@@ -307,4 +316,15 @@ if __name__ == "__main__":
 
     # Генерируем HTML страницу
     file = 'map.html'
-    file = my_map.save(file)
+    return my_map.save(file)
+
+if __name__ == "__main__":
+
+    # log2html('SEKOP_LOGS/020_20220408.csv')
+
+    import requests
+
+    file = {'file': open('SEKOP_LOGS/020_20220408.csv', 'r')}
+    req = requests.post('http://localhost:5000/log', files=file)
+
+    print(req.text)
