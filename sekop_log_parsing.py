@@ -37,7 +37,6 @@ def extract_nmea_from_log(
     # Зачищаем ячейки столбца Дата от всех символов, кроме 0-9, '-'
     geo[0].replace(r'[^\d-]', '', regex=True, inplace=True)
 
-
     # Зачищаем ячейки столбца Время от всех символов, кроме 0-9, ':'
     geo[1].replace(r'[^\d:]', '', regex=True, inplace=True)
 
