@@ -4,6 +4,7 @@
 Входные данные - запакованный лог БО СЭКОП.
 Результат выполнения - страница HTML с треком
 """
+import io
 
 import numpy as np
 import pandas as pd
@@ -177,18 +178,28 @@ def draw_dot_track_to_map(
     """
 
     # Метки для НП/КП (Начало и конец трека)
-    for coordination, times in zip([track2list[0], track2list[-1]],
-                                   [track_time[0], track_time[-1]]):
-        folium.Marker(location=coordination,
-                      icon=folium.Icon(color=tail_label_color),
-                      tooltip=folium.Tooltip(times,  # В идеале сюда подавать строку, но datetime тоже работает
-                                             sticky=False,
-                                             permanent=True
-                                             )
-                      ).add_to(my_map)
+    for coordination, times in zip(
+            [track2list[0], track2list[-1]],
+            [track_time[0], track_time[-1]]
+    ):
+        folium.Marker(
+            location=coordination,
+            icon=folium.Icon(color=tail_label_color),
+
+            tooltip=folium.Tooltip(
+                times,  # В идеале сюда подавать строку, но datetime тоже работает
+                sticky=False,
+                permanent=True
+            )
+
+        ).add_to(my_map)
 
     # Трек точками
-    for times, coordinate in zip(track_time, track2list):
+    for times, coordinate in zip(
+            track_time,
+            track2list
+    ):
+
         folium.CircleMarker(
             location=coordinate,
             color=color,
@@ -231,10 +242,6 @@ def draw_polyline_trip_track(my_map,
         )
     ).add_to(my_map)
 
-
-# if __name__ == "__main__":
-#     pass
-
 def log2html(
         log_file,
         start: str = None,
@@ -254,7 +261,7 @@ def log2html(
     # start = ''
     # stop = ''
 
-    log_file = BytesIO(log_file)
+    # log_file = BytesIO(log_file)
 
     nmea_track = extract_nmea_from_log(log_file, start, stop)
 
@@ -316,15 +323,18 @@ def log2html(
 
     # Генерируем HTML страницу
     file = 'map.html'
-    return my_map.save(file)
+    my_map.save(file)
+
+    return file
+
 
 if __name__ == "__main__":
 
-    # log2html('SEKOP_LOGS/020_20220408.csv')
-
     import requests
 
-    file = {'file': open('SEKOP_LOGS/020_20220408.csv', 'r')}
+    file = {'file': io.open('SEKOP_LOGS/019_20220408.csv', encoding='utf-8')}
     req = requests.post('http://localhost:5000/log', files=file)
+
+    # txt = req.json()['file']
 
     print(req.text)
