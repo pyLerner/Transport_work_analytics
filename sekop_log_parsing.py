@@ -51,6 +51,9 @@ def extract_nmea_from_log(
     else:
         end_time += ":59"     # В период включается вся минута до последней секунды
 
+    start_time = pd.to_datetime(start_time)
+    end_time = pd.to_datetime(end_time)
+
     # Отбор строк за период
     geo = geo[(geo[0] >= start_time) & (geo[0] < end_time)]
 
