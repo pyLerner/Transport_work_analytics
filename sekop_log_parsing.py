@@ -54,6 +54,9 @@ def extract_nmea_from_log(
     else:
         end_time += ":59"     # В период включается вся минута до последней секунды
 
+    start_time = pd.to_datetime(start_time)
+    end_time = pd.to_datetime(end_time)
+
     # Отбор строк за период
     geo = geo[(geo[0] >= start_time) & (geo[0] < end_time)]
 
@@ -263,6 +266,8 @@ def log2html(
 
     # log_file = BytesIO(log_file)
 
+    print(log_file)
+
     nmea_track = extract_nmea_from_log(log_file, start, stop)
 
     # print(start)
@@ -272,7 +277,7 @@ def log2html(
     track_time = track_time_to_datetime(nmea_track[:, 0])
 
     # Пересчитываем координаты в десятичные градусы
-    track = nmea_coordinates_to_degrees(nmea_track)[:, 1:3]
+    track = nmea_coordinates_to_degrees(nmea_track[:, 1:3])
 
     # Приведение к виду для загрузки в leaflet/foliant:
     track2list = track.tolist()
@@ -332,9 +337,22 @@ if __name__ == "__main__":
 
     import requests
 
+    # Отправляем лог на сервер
     file = {'file': io.open('SEKOP_LOGS/019_20220408.csv', encoding='utf-8')}
-    req = requests.post('http://localhost:5000/log', files=file)
 
-    # txt = req.json()['file']
+    req = requests.post(
+        'http://localhost:5000/upload',
+        files=file
+    )
 
     print(req.text)
+
+    # Вторым запросом строим трек в файле map.html по заданному временному интервалу
+    track = requests.get(
+        'http://localhost:5000/track',
+        params={'start_time': "2022-04-08 14:26",
+                'end_time': "2022-04-08 14:29"
+                }
+    )
+
+    print(track.text)
