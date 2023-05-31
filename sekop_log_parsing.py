@@ -247,6 +247,7 @@ def draw_polyline_trip_track(my_map,
 
 def log2html(
         log_file,
+        map_name='map.html',
         start: str = None,
         stop: str = None
 ):
@@ -327,14 +328,15 @@ def log2html(
     )
 
     # Генерируем HTML страницу
-    file = 'map.html'
-    my_map.save(file)
+    # file = 'map.html'
+    my_map.save(map_name)
 
-    return file
+    return map_name
 
 
 if __name__ == "__main__":
 
+    # Проверка работы api
     import requests
 
     # Отправляем лог на сервер
@@ -345,14 +347,21 @@ if __name__ == "__main__":
         files=file
     )
 
-    print(req.text)
+    print(req.json())
 
     # Вторым запросом строим трек в файле map.html по заданному временному интервалу
+    log_id = req.json()['id']
+
     track = requests.get(
         'http://localhost:5000/track',
-        params={'start_time': "2022-04-08 14:26",
-                'end_time': "2022-04-08 14:29"
+        params={'id': log_id,
+                'start_time': '2022-04-08 13:20',
+                'end_time': '2022-04-08 14:26'
                 }
     )
 
-    print(track.text)
+    map_file = track.text
+    print(map_file)
+
+    file_name = log_id + '.html'
+    print(file_name)

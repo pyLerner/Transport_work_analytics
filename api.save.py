@@ -1,26 +1,45 @@
-from fastapi import FastAPI, UploadFile
+# WEB API для передачи в вэб приложение трека из лог файла по заданному временному интервалу
+
+from fastapi import FastAPI, File, UploadFile
 import uvicorn
 from sekop_log_parsing import log2html
+from io import BytesIO
+import random
 
 app = FastAPI()
 
+@app.post("/upload/")
+async def upload_file(file: UploadFile):
 
-@app.post("/log")
-async def put_log(
-        file: UploadFile,
-):
+    with open('.log_name, 'wb') as f:
+        log_name = f.write(file.file.read())
+
+    return {"filesize": log_name}
+
+
+# Построение трека по заданному временному интервалу
+@app.get("/track")
+async def get_track(
+        # log_file: str,
+        start_time: str = None,
+        end_time: str = None):
+
+    map = log2html(
+            '.log_name',
+            start_time,
+            end_time
+            )
+
+    return {"trackfile": map}
+
+#Построение трека из файла целиком
+@app.get("/map")
+async def get_map(file: UploadFile):
 
     txt = file.file.read()
 
-    # Раскомментировать, если нужен plain text
-    # return {"file": file.file.read()}
-
     # Возврат имени файла карты
     return {"map": log2html(txt)}
-
-@app.get("/map")
-async def get_map():
-    return None
 
 
 if __name__ == "__main__":
