@@ -8,6 +8,7 @@ from io import BytesIO
 import random
 import os
 import time
+import aiofiles
 
 app = FastAPI()
 
@@ -28,11 +29,20 @@ async def upload_file(
     id_session = str(random.randint(1000, 9999))
     log_name = '.' + id_session
 
-    with open(log_name, 'wb') as f:
-        log_file = f.write(file.file.read())
+    # Асинхронная запись в файл
+    async with aiofiles.open(log_name, 'wb') as f:
+        log_file = await f.write(file.file.read())
+
+    # Отрисовка полного трека
+    map_name = id_session + '.html'
+    map = log2html(
+        log_name,
+        map_name,
+    )
 
     # Фоновая задача для удаления файла через 5 минут
     bg_task.add_task(remove_log, log_name)
+
 
     return {"id": id_session,
             "filesize": log_file,
@@ -58,7 +68,7 @@ async def get_track(
             map_name,
             start_time,
             end_time
-            )
+    )
 
     bg_task.add_task(remove_log, map_name)
 

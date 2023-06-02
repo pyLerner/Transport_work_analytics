@@ -363,5 +363,5 @@ if __name__ == "__main__":
     map_file = track.text
     print(map_file)
 
-    file_name = log_id + '.html'
-    print(file_name)
+    # file_name = log_id + '.html'
+    # print(file_name)
