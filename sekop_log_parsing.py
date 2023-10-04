@@ -5,12 +5,12 @@
 Результат выполнения - страница HTML с треком
 """
 import io
-
 import numpy as np
 import pandas as pd
 import folium
 import datetime
 from io import BytesIO
+from typing import List, Tuple
 
 
 def extract_nmea_from_log(
@@ -213,10 +213,12 @@ def draw_dot_track_to_map(
         ).add_to(my_map)
 
 
-def draw_polyline_trip_track(my_map,
-                             track,
-                             color='blue',
-                             tooltip_text=None):
+def draw_polyline_trip_track(
+        my_map,
+        track,
+        color='blue',
+        tooltip_text=None
+):
 
     """
     :param my_map:  folium Map
@@ -244,6 +246,74 @@ def draw_polyline_trip_track(my_map,
             #          style='background-color:grey'
         )
     ).add_to(my_map)
+
+
+def draw_polyline_trip_track(
+        my_map,
+        track,
+        color='blue',
+        tooltip_text=None
+):
+
+    """
+    :param my_map:  folium Map
+    :param track: список кортежей или списков с координатами
+    :param color: цвет полилиний трека
+    :param tooltip_text: текст в текстовой метке
+
+    :return: None
+    """
+
+    # Метки для НП/КП
+    for coordination in [track[0], track[-1]]:
+        folium.Marker(
+            location=coordination,
+            icon=folium.Icon(color=color)
+        ).add_to(my_map)
+
+    # Трасса маршрута
+    folium.PolyLine(
+        track,
+        tooltip=folium.Tooltip(
+            tooltip_text,
+            sticky=False,  # не прилипает к курсору
+            permanent=True  # отображается всегда
+            #          style='background-color:grey'
+        )
+    ).add_to(my_map)
+
+
+
+def draw_route_trace(my_map,
+        path: List[Tuple[float, float]],
+        stops_location: List[Tuple[float], ],
+        stops_names: List[str, ],
+        route_name: str = '',
+        color: str = 'blue'
+):
+    """
+    Построение трассы маршрута с остановочными пунктами
+    """
+    draw_polyline_trip_track(my_map,
+                             path,
+                             color=color,
+                             tooltip_text=route_name
+                             )
+
+    for coordination, stop_name in zip(stops_location, stops_names):
+        folium.Marker(
+            location=coordination,
+            icon=folium.Icon(color=color),
+            tooltip=folium.Tooltip(
+                stop_name,
+                sticky=False,  # не прилипает к курсору
+                permanent=True  # отображается всегда
+                #          style='background-color:grey'
+            )
+        ).add_to(my_map)
+
+
+
 
 def log2html(
         log_file,

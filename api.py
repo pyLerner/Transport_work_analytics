@@ -6,17 +6,22 @@ import uvicorn
 from sekop_log_parsing import log2html
 from io import BytesIO
 import random
-import os
-import time
+# import os
 import aiofiles
+from aiofiles import os
+import asyncio
+
+import config
+
 
 app = FastAPI()
 
 # Функция удаления закаченного файла через 5 минут
-def remove_log(log_name: str) -> None:
+async def remove_log(log_name: str) -> None:
 
-    time.sleep(30)
-    os.remove(log_name)
+    await asyncio.sleep(30)
+    await os.remove(log_name)
+
 
 @app.post("/upload/")
 

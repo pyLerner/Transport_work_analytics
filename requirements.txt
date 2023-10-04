@@ -5,8 +5,7 @@ branca==0.6.0
 certifi==2022.9.24
 charset-normalizer==2.1.1
 dateutils==0.6.12
-distlib==0.3.6
-dotenv-config==0.1.4
+distlib==0.3.
 et-xmlfile==1.1.0
 filelock==3.8.0
 gtfs-realtime-bindings==0.0.7
@@ -29,7 +28,9 @@ urllib3==1.26.12
 virtualenv==20.16.6
 virtualenvwrapper-win==1.2.7
 xlrd==2.0.1
-fastapi
-uvicorn
+fastapi~=0.95.2
+uvicorn~=0.22.0
 python-multipart
-aiofiles
+aiofiles~=23.1.0
+
+python-dotenv~=1.0.0

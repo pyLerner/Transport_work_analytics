@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 # GTFS section ######
@@ -32,3 +33,7 @@ FEEDS_DB_NAME = os.getenv('FEEDS_DB_NAME')
 
 # Out Result section
 OUT_REPORTS: str = os.path.join(os.getcwd(), 'OutReports')
+
+
+if __name__ == "__main__":
+    pass
